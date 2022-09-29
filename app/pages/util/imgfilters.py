@@ -1,20 +1,43 @@
 import cv2
 import numpy as np
 
+def to_hsv(img):
+    return cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 
 def to_gray(img):
     return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-# def filter_by_thresholding(img):
-    
+def filter_by_thresholding(img):
+    return cv2.threshold(img,70,255,cv2.THRESH_BINARY)[1]
+  
+def to_negative(img):
+    return 255 - img
+  
+def remove_channel(img, color):
+    if color == 'Green':
+        img[:,:,1] = 0
+    if color == 'Blue':
+        img[:,:,2] = 0
+    if color == 'Red':
+        img[:,:,0] = 0
+    return img
+
+def soak_channel(img,color,itsity):
+    if color == 'Red':
+        img[:,:,0] = img[:,:,0] * itsity
+    if color == 'Blue':
+        img[:,:,2] = img[:,:,2] * itsity
+    if color == 'Green':
+        img[:,:,1] = img[:,:,1] * itsity
+    return img
 
 def hist_equalize(img):
     return cv2.equalizeHist(img)
 
 
 def filter_by_mean_blur(img, kernel_size):
-    kernel = np.ones((kernel_size, kernel_size), np.float32)
-    return cv2.filter2D(img, -2, kernel)
+    kernel = np.ones((kernel_size, kernel_size), np.float32)/(kernel_size**2)
+    return cv2.filter2D(img, -1, kernel)
 
 
 def filter_by_median_blur(img, x):
@@ -37,7 +60,8 @@ def filter_by_laplacian(img):
 
 
 def filter_by_butterworth_low(img, n, cutoff):
-    Fshift = np.fft.fftshift(np.fft.fft2(img))
+    F = np.fft.fft2(img)
+    Fshift = np.fft.fftshift(np.fft.fft2(F))
 
     M, N = img.shape
 
@@ -55,7 +79,8 @@ def filter_by_butterworth_low(img, n, cutoff):
 
 
 def filter_by_butterworth_high(img, n, cutoff):
-    Fshift = np.fft.fftshift(np.fft.fft2(img))
+    F = np.fft.fft2(img)
+    Fshift = np.fft.fftshift(np.fft.fft2(F))
     M, N = img.shape
 
     H = np.zeros((M, N), dtype=np.float32)
@@ -69,3 +94,8 @@ def filter_by_butterworth_high(img, n, cutoff):
     G = np.fft.ifftshift(Gshift)
     g = np.abs(np.fft.ifft2(G))
     return g
+
+def subtract_by_colors(img,colors):
+    img_compose = img.copy()
+    
+    
